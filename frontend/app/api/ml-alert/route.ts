@@ -27,42 +27,43 @@ export async function POST(req: Request) {
     }
 
     // 1. Send SMS Alert via Twilio SDK
+    // Removed brackets and complex punctuation that often trigger India's strict DLT carrier spam filters on Twilio trial numbers
     const messagePromise = client.messages.create({
-      body: `[CareSyn AI ALERT] Issue detected on ${machine_id || 'system'}. Risk Score: ${risk_score || 'High'}. Details: ${anomaly || 'Unknown anomaly'}. Please check dashboard immediately.`,
+      body: `CareSyn AI: Issue detected on ${machine_id || 'system'}. Anomaly: ${anomaly || 'Unknown'}. Please open dashboard to halt machine.`,
       from: fromNumber,
       to: toNumber,
     });
 
     // 2. Initiate Phone Call connecting to ElevenLabs Agent Natively
     const callPromise = fetch("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", {
-        method: "POST",
-        headers: {
-            "xi-api-key": elevenLabsApiKey,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            agent_id: agentId,
-            agent_phone_number_id: agentPhoneNumberId,
-            to_number: toNumber,
-            conversation_initiation_client_data: {
-                dynamic_variables: {
-                    company_name: "CareSyn AI",
-                    issue: anomaly || "Critical temperature spike in the Main Compressor",
-                    timeframe: "within the next 45 minutes",
-                    impact: "a potential system shutdown",
-                    confidence: `${risk_score || 90}% confidence`,
-                    action: "immediately log into the CareSyn dashboard to approve a maintenance halt"
-                }
-            }
-        })
+      method: "POST",
+      headers: {
+        "xi-api-key": elevenLabsApiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        agent_id: agentId,
+        agent_phone_number_id: agentPhoneNumberId,
+        to_number: toNumber,
+        conversation_initiation_client_data: {
+          dynamic_variables: {
+            company_name: "CareSyn AI",
+            issue: anomaly || "Critical temperature spike in the Main Compressor",
+            timeframe: "within the next 45 minutes",
+            impact: "a potential system shutdown",
+            confidence: `${risk_score || 90}% confidence`,
+            action: "immediately log into the CareSyn dashboard to approve a maintenance halt"
+          }
+        }
+      })
     });
 
     // Execute both in parallel
     const [messageParams, callResp] = await Promise.all([messagePromise, callPromise]);
 
     if (!callResp.ok) {
-        const errorText = await callResp.text();
-        throw new Error(`ElevenLabs Native API HTTP error ${callResp.status}: ${errorText}`);
+      const errorText = await callResp.text();
+      throw new Error(`ElevenLabs Native API HTTP error ${callResp.status}: ${errorText}`);
     }
 
     const callData = await callResp.json();
@@ -70,8 +71,8 @@ export async function POST(req: Request) {
 
     // ElevenLabs sometimes wraps Twilio errors in HTTP 200 responses
     if (callData.success === false) {
-        const msg = callData.message || "Unknown Twilio/ElevenLabs error";
-        throw new Error(`ElevenLabs Twilio Setup Failure: ${msg}`);
+      const msg = callData.message || "Unknown Twilio/ElevenLabs error";
+      throw new Error(`ElevenLabs Twilio Setup Failure: ${msg}`);
     }
 
     return NextResponse.json({
