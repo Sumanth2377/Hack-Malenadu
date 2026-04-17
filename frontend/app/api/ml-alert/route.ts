@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import twilio from 'twilio';
 
-// Initialize the Twilio Client
+// Initialize the Twilio Client (used only for SMS now)
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -15,45 +15,63 @@ export async function POST(req: Request) {
     const fromNumber = process.env.TWILIO_PHONE_NUMBER;
     const toNumber = process.env.TARGET_PHONE_NUMBER;
     const agentId = process.env.ELEVENLABS_AGENT_ID;
+    const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+    const agentPhoneNumberId = process.env.ELEVENLABS_PHONE_NUMBER_ID;
 
-    if (!fromNumber || !toNumber || !agentId) {
+    // We now require the ElevenLabs explicit keys based on the native deployment approach
+    if (!fromNumber || !toNumber || !agentId || !elevenLabsApiKey || !agentPhoneNumberId) {
       return NextResponse.json(
-        { error: 'Missing necessary environment variables (.env.local setup)' },
+        { error: 'Missing necessary environment variables (.env.local setup: ELEVENLABS_API_KEY, ELEVENLABS_PHONE_NUMBER_ID needed)' },
         { status: 500 }
       );
     }
 
-    // 1. Send SMS Alert
+    // 1. Send SMS Alert via Twilio SDK
     const messagePromise = client.messages.create({
       body: `[CareSyn AI ALERT] Issue detected on ${machine_id || 'system'}. Risk Score: ${risk_score || 'High'}. Details: ${anomaly || 'Unknown anomaly'}. Please check dashboard immediately.`,
       from: fromNumber,
       to: toNumber,
     });
 
-    // 2. Initiate Phone Call connecting to ElevenLabs Agent
-    // Twilio Media Streams XML (TwiML) to bridge the call audio directly to ElevenLabs AI Agent
-    const twiml = `
-      <Response>
-        <Connect>
-          <Stream url="wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${agentId}" />
-        </Connect>
-      </Response>
-    `;
-
-    const callPromise = client.calls.create({
-      twiml: twiml,
-      to: toNumber,
-      from: fromNumber,
+    // 2. Initiate Phone Call connecting to ElevenLabs Agent Natively
+    const callPromise = fetch("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", {
+        method: "POST",
+        headers: {
+            "xi-api-key": elevenLabsApiKey,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            agent_id: agentId,
+            agent_phone_number_id: agentPhoneNumberId,
+            to_number: toNumber,
+            conversation_initiation_client_data: {
+                dynamic_variables: {
+                    company_name: "CareSyn AI",
+                    issue: anomaly || "Critical temperature spike in the Main Compressor",
+                    timeframe: "within the next 45 minutes",
+                    impact: "a potential system shutdown",
+                    confidence: `${risk_score || 90}% confidence`,
+                    action: "immediately log into the CareSyn dashboard to approve a maintenance halt"
+                }
+            }
+        })
     });
 
     // Execute both in parallel
-    const [messageParams, callParams] = await Promise.all([messagePromise, callPromise]);
+    const [messageParams, callResp] = await Promise.all([messagePromise, callPromise]);
+
+    if (!callResp.ok) {
+        const errorText = await callResp.text();
+        throw new Error(`ElevenLabs Native API error ${callResp.status}: ${errorText}`);
+    }
+
+    const callData = await callResp.json();
 
     return NextResponse.json({
       success: true,
       message_sid: messageParams.sid,
-      call_sid: callParams.sid,
-      status: 'Call and SMS triggered successfully',
+      call_data: callData,
+      status: 'Call and SMS triggered successfully via Native ElevenLabs hook',
     });
   } catch (error: any) {
     console.error('Trigger alert error:', error);
