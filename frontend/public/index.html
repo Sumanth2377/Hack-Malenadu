@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareSyn AI - Industrial Maintenance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FAF8F5 0%, #E6DFD0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #C8B896 0%, #A69776 100%);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        h1 {
+            color: #2C2416;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #6B5E4F;
+            font-size: 16px;
+        }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .nav-card {
+            display: block;
+            padding: 20px;
+            background: #FAF8F5;
+            border: 2px solid #E6DFD0;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-card:hover {
+            border-color: #C8B896;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .nav-card h3 {
+            color: #2C2416;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-card p {
+            color: #6B5E4F;
+            font-size: 14px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #F0F9FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            color: #1E40AF;
+            font-size: 14px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #E6DFD0;
+            color: #6B5E4F;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">⚡</div>
+            <h1>CareSyn AI</h1>
+            <p class="subtitle">Industrial Maintenance Automation System</p>
+        </div>
+        
+        <div class="nav-grid">
+            <a href="/dashboard" class="nav-card">
+                <h3>📊 Dashboard</h3>
+                <p>System overview & stats</p>
+            </a>
+            
+            <a href="/workflow" class="nav-card">
+                <h3>🔄 Workflow</h3>
+                <p>Visual pipeline builder</p>
+            </a>
+            
+            <a href="/devices" class="nav-card">
+                <h3>🖥️ Devices</h3>
+                <p>Equipment monitoring</p>
+            </a>
+            
+            <a href="/alerts" class="nav-card">
+                <h3>⚠️ Alerts</h3>
+                <p>Alert management</p>
+            </a>
+            
+            <a href="/logs" class="nav-card">
+                <h3>📜 Logs</h3>
+                <p>System audit trail</p>
+            </a>
+            
+            <a href="/analytics" class="nav-card">
+                <h3>📈 Analytics</h3>
+                <p>Performance insights</p>
+            </a>
+            
+            <a href="/settings" class="nav-card">
+                <h3>⚙️ Settings</h3>
+                <p>System configuration</p>
+            </a>
+        </div>
+        
+        <div class="status">
+            <div class="status-dot"></div>
+            <div class="status-text">System Online - All services operational</div>
+        </div>
+        
+        <div class="footer">
+            <p>Built with Next.js, React, and Tailwind CSS</p>
+            <p style="margin-top: 5px; font-size: 12px;">v1.0.0 • CareSyn AI © 2026</p>
+        </div>
+    </div>
+</body>
+</html>
