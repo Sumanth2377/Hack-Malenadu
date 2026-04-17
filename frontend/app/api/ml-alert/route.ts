@@ -62,10 +62,17 @@ export async function POST(req: Request) {
 
     if (!callResp.ok) {
         const errorText = await callResp.text();
-        throw new Error(`ElevenLabs Native API error ${callResp.status}: ${errorText}`);
+        throw new Error(`ElevenLabs Native API HTTP error ${callResp.status}: ${errorText}`);
     }
 
     const callData = await callResp.json();
+    console.log("ElevenLabs API Response:", JSON.stringify(callData, null, 2));
+
+    // ElevenLabs sometimes wraps Twilio errors in HTTP 200 responses
+    if (callData.success === false) {
+        const msg = callData.message || "Unknown Twilio/ElevenLabs error";
+        throw new Error(`ElevenLabs Twilio Setup Failure: ${msg}`);
+    }
 
     return NextResponse.json({
       success: true,
